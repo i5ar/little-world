@@ -19,10 +19,48 @@
 </head>
 
 <body>
+
+    <div>
+        <input type="button" name="zoomOut" value="-" />
+        <input type="button" name="zoomIn" value="+" />
+        <input type="range" name="tilt" min="1" max="100" />
+        <input type="range" name="pan" min="1" max="100" />
+    </div>
+
     <script>
-        const littlePlanet = new PANOLENS.ImageLittlePlanet('image.png');
-        const viewer = new PANOLENS.Viewer({controlBar: false});
-        viewer.add(littlePlanet);
+
+    let myInt;
+    const delta = 120;
+    const refreshRate = 20;
+    const zoomIn = document.querySelector("[name=zoomIn]");
+    const zoomOut = document.querySelector("[name=zoomOut]");
+    PANOLENS.LittlePlanet.prototype.registerMouseEvents = function () {
+        zoomOut.addEventListener("mousedown", this.onZoomOut.bind(this), false);
+        zoomOut.addEventListener("mouseup", () => clearInterval(myInt), false);
+        zoomIn.addEventListener("mousedown", this.onZoomIn.bind(this), false);
+        zoomIn.addEventListener("mouseup", () => clearInterval(myInt), false);
+    };
+    PANOLENS.LittlePlanet.prototype.onZoomOut = function (event) {
+        myInt = setInterval(() => {
+            this.addZoomDelta(delta);
+        }, refreshRate);
+    };
+    PANOLENS.LittlePlanet.prototype.onZoomIn = function (event) {
+        myInt = setInterval(() => {
+            this.addZoomDelta(-delta);
+        }, refreshRate);
+    };
+
+
+
+
+
+
+
+
+    const ImageLittlePlanet = new PANOLENS.ImageLittlePlanet('image.png');
+    const viewer = new PANOLENS.Viewer({controlBar: true});
+    viewer.add(ImageLittlePlanet);
     </script>
 </body>
 

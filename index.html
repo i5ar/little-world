@@ -49,7 +49,9 @@
     const panLeft = document.querySelector("[name=panLeft]");
     const panRight = document.querySelector("[name=panRight]");
 
-    PANOLENS.LittlePlanet.prototype.registerMouseEvents = function () {
+    // NOTE: Monkey-patching the registerMouseEvents
+    const _register = PANOLENS.LittlePlanet.prototype.registerMouseEvents;
+    const registerCustomEvents = function () {
         zoomOut.addEventListener("mousedown", this.onZoom.bind(this), false);
         zoomOut.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
         zoomIn.addEventListener("mousedown", this.onZoom.bind(this), false);
@@ -62,7 +64,9 @@
         tiltUp.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
         tiltDown.addEventListener("mousedown", this.onOrbit.bind(this), false);
         tiltDown.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+        _register.call(this);
     };
+    PANOLENS.LittlePlanet.prototype.registerMouseEvents = registerCustomEvents;
 
     PANOLENS.LittlePlanet.prototype.onZoom = function (event) {
         zoomInterval = setInterval(() => {

@@ -14,49 +14,85 @@
             height: 100%;
             margin: 0;
         }
+        form {
+            position: fixed;
+        }
     </style>
     <title>Little Planet</title>
 </head>
 
 <body>
 
-    <div>
+    <form>
         <input type="button" name="zoomOut" value="-" />
         <input type="button" name="zoomIn" value="+" />
-        <input type="range" name="tilt" min="1" max="100" />
-        <input type="range" name="pan" min="1" max="100" />
-    </div>
+
+        <input type="button" name="panLeft" value="s" />
+        <input type="button" name="panRight" value="d" />
+
+        <input type="button" name="tiltUp" value="f" />
+        <input type="button" name="tiltDown" value="v" />
+
+    </form>
 
     <script>
-
-    let myInt;
-    const delta = 120;
-    const refreshRate = 20;
+    let zoomInterval;
+    let orbitInterval;
+    const zDelta = 120;
+    const yDelta = 2;
+    const xDelta = 2;
+    const refreshRate = 1000 / 50;
     const zoomIn = document.querySelector("[name=zoomIn]");
     const zoomOut = document.querySelector("[name=zoomOut]");
+    const tiltUp = document.querySelector("[name=tiltUp]");
+    const tiltDown = document.querySelector("[name=tiltDown]");
+    const panLeft = document.querySelector("[name=panLeft]");
+    const panRight = document.querySelector("[name=panRight]");
+
     PANOLENS.LittlePlanet.prototype.registerMouseEvents = function () {
-        zoomOut.addEventListener("mousedown", this.onZoomOut.bind(this), false);
-        zoomOut.addEventListener("mouseup", () => clearInterval(myInt), false);
-        zoomIn.addEventListener("mousedown", this.onZoomIn.bind(this), false);
-        zoomIn.addEventListener("mouseup", () => clearInterval(myInt), false);
+        zoomOut.addEventListener("mousedown", this.onZoom.bind(this), false);
+        zoomOut.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
+        zoomIn.addEventListener("mousedown", this.onZoom.bind(this), false);
+        zoomIn.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
+        panLeft.addEventListener("mousedown", this.onOrbit.bind(this), false);
+        panLeft.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+        panRight.addEventListener("mousedown", this.onOrbit.bind(this), false);
+        panRight.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+        tiltUp.addEventListener("mousedown", this.onOrbit.bind(this), false);
+        tiltUp.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+        tiltDown.addEventListener("mousedown", this.onOrbit.bind(this), false);
+        tiltDown.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
     };
-    PANOLENS.LittlePlanet.prototype.onZoomOut = function (event) {
-        myInt = setInterval(() => {
-            this.addZoomDelta(delta);
+
+    PANOLENS.LittlePlanet.prototype.onZoom = function (event) {
+        zoomInterval = setInterval(() => {
+            this.addZoomDelta(event.target.name === "zoomIn" ? - zDelta : zDelta);
+            this.onUpdateCallback();
         }, refreshRate);
     };
-    PANOLENS.LittlePlanet.prototype.onZoomIn = function (event) {
-        myInt = setInterval(() => {
-            this.addZoomDelta(-delta);
+
+    PANOLENS.LittlePlanet.prototype.onOrbit = function (event) {
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        this.userMouse.set(x, y);
+        this.dragging = true;
+        orbitInterval = setInterval(() => {
+            if (event.target.name === "panLeft") x = x - xDelta;
+            if (event.target.name === "panRight") x = x + xDelta;
+            if (event.target.name === "tiltUp") y = y - yDelta;
+            if (event.target.name === "tiltDown") y = y + yDelta;
+            const angleX = THREE.Math.degToRad(x - this.userMouse.x) * 0.4;
+            const angleY = THREE.Math.degToRad(y - this.userMouse.y) * 0.4;
+            this.quatA.setFromAxisAngle(this.vectorY, angleX);
+            this.quatB.setFromAxisAngle(this.vectorX, angleY);
+            this.quatCur.multiply(this.quatA).multiply(this.quatB);
+            this.userMouse.set(x, y);
+            if (this.dragging === true) {
+                this.onUpdateCallback();
+                this.dragging = !this.dragging;
+            }
         }, refreshRate);
     };
-
-
-
-
-
-
-
 
     const ImageLittlePlanet = new PANOLENS.ImageLittlePlanet('image.png');
     const viewer = new PANOLENS.Viewer({controlBar: true});

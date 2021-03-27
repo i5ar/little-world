@@ -64,6 +64,10 @@
         tiltUp.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
         tiltDown.addEventListener("mousedown", this.onOrbit.bind(this), false);
         tiltDown.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+
+        document.addEventListener("keydown", this.onOrbit.bind(this), false);
+        document.addEventListener("keyup", () => clearInterval(orbitInterval), false);
+
         _register.call(this);
     };
     PANOLENS.LittlePlanet.prototype.registerMouseEvents = registerCustomEvents;
@@ -81,10 +85,10 @@
         this.userMouse.set(x, y);
         this.dragging = true;
         orbitInterval = setInterval(() => {
-            if (event.target.name === "panLeft") x = x - xDelta;
-            if (event.target.name === "panRight") x = x + xDelta;
-            if (event.target.name === "tiltUp") y = y - yDelta;
-            if (event.target.name === "tiltDown") y = y + yDelta;
+            if (event.target.name === "panLeft" || event.key === "s") x = x - xDelta;
+            if (event.target.name === "panRight" || event.key === "d") x = x + xDelta;
+            if (event.target.name === "tiltUp" || event.key === "f") y = y - yDelta;
+            if (event.target.name === "tiltDown" || event.key === "v") y = y + yDelta;
             const angleX = THREE.Math.degToRad(x - this.userMouse.x) * 0.4;
             const angleY = THREE.Math.degToRad(y - this.userMouse.y) * 0.4;
             this.quatA.setFromAxisAngle(this.vectorY, angleX);

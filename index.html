@@ -52,6 +52,7 @@
     // NOTE: Monkey-patching the registerMouseEvents
     const _register = PANOLENS.LittlePlanet.prototype.registerMouseEvents;
     const registerCustomEvents = function () {
+        const self = this;
         zoomOut.addEventListener("mousedown", this.onZoom.bind(this), false);
         zoomOut.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
         zoomIn.addEventListener("mousedown", this.onZoom.bind(this), false);
@@ -80,26 +81,28 @@
     };
 
     PANOLENS.LittlePlanet.prototype.onOrbit = function (event) {
-        let x = window.innerWidth / 2;
-        let y = window.innerHeight / 2;
-        this.userMouse.set(x, y);
-        this.dragging = true;
-        orbitInterval = setInterval(() => {
-            if (event.target.name === "panLeft" || event.key === "s") x = x - xDelta;
-            if (event.target.name === "panRight" || event.key === "d") x = x + xDelta;
-            if (event.target.name === "tiltUp" || event.key === "f") y = y - yDelta;
-            if (event.target.name === "tiltDown" || event.key === "v") y = y + yDelta;
-            const angleX = THREE.Math.degToRad(x - this.userMouse.x) * 0.4;
-            const angleY = THREE.Math.degToRad(y - this.userMouse.y) * 0.4;
-            this.quatA.setFromAxisAngle(this.vectorY, angleX);
-            this.quatB.setFromAxisAngle(this.vectorX, angleY);
-            this.quatCur.multiply(this.quatA).multiply(this.quatB);
+        if (!event.repeat) { // if the key is not held down
+            let x = window.innerWidth / 2;
+            let y = window.innerHeight / 2;
             this.userMouse.set(x, y);
-            if (this.dragging === true) {
-                this.onUpdateCallback();
-                this.dragging = !this.dragging;
-            }
-        }, refreshRate);
+            this.dragging = true;
+            orbitInterval = setInterval(() => {
+                if (event.target.name === "panLeft" || event.key === "s") x = x - xDelta;
+                if (event.target.name === "panRight" || event.key === "d") x = x + xDelta;
+                if (event.target.name === "tiltUp" || event.key === "f") y = y - yDelta;
+                if (event.target.name === "tiltDown" || event.key === "v") y = y + yDelta;
+                const angleX = THREE.Math.degToRad(x - this.userMouse.x) * 0.4;
+                const angleY = THREE.Math.degToRad(y - this.userMouse.y) * 0.4;
+                this.quatA.setFromAxisAngle(this.vectorY, angleX);
+                this.quatB.setFromAxisAngle(this.vectorX, angleY);
+                this.quatCur.multiply(this.quatA).multiply(this.quatB);
+                this.userMouse.set(x, y);
+                if (this.dragging === true) {
+                    this.onUpdateCallback();
+                    this.dragging = !this.dragging;
+                }
+            }, refreshRate)
+        };
     };
 
     const ImageLittlePlanet = new PANOLENS.ImageLittlePlanet('image.png');

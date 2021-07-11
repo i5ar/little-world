@@ -13,6 +13,7 @@
             width: 100%;
             height: 100%;
             margin: 0;
+            overflow: hidden;
         }
         form {
             position: fixed;
@@ -36,61 +37,81 @@
     </form>
 
     <script>
+    // https://github.com/pchen66/panolens.js/blob/master/src/panorama/LittlePlanet.js
+
     let zoomInterval;
     let orbitInterval;
     const zDelta = 120;
     const yDelta = 2;
     const xDelta = 2;
     const refreshRate = 1000 / 50;
-    const zoomIn = document.querySelector("[name=zoomIn]");
+
     const zoomOut = document.querySelector("[name=zoomOut]");
-    const tiltUp = document.querySelector("[name=tiltUp]");
-    const tiltDown = document.querySelector("[name=tiltDown]");
+    const zoomIn = document.querySelector("[name=zoomIn]");
     const panLeft = document.querySelector("[name=panLeft]");
     const panRight = document.querySelector("[name=panRight]");
+    const tiltUp = document.querySelector("[name=tiltUp]");
+    const tiltDown = document.querySelector("[name=tiltDown]");
 
     // NOTE: Monkey-patching the registerMouseEvents
     const _register = PANOLENS.LittlePlanet.prototype.registerMouseEvents;
     const registerCustomEvents = function () {
-        const self = this;
-        zoomOut.addEventListener("mousedown", this.onZoom.bind(this), false);
-        zoomOut.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
-        zoomIn.addEventListener("mousedown", this.onZoom.bind(this), false);
-        zoomIn.addEventListener("mouseup", () => clearInterval(zoomInterval), false);
-        panLeft.addEventListener("mousedown", this.onOrbit.bind(this), false);
-        panLeft.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
-        panRight.addEventListener("mousedown", this.onOrbit.bind(this), false);
-        panRight.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
-        tiltUp.addEventListener("mousedown", this.onOrbit.bind(this), false);
-        tiltUp.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
-        tiltDown.addEventListener("mousedown", this.onOrbit.bind(this), false);
-        tiltDown.addEventListener("mouseup", () => clearInterval(orbitInterval), false);
+        // const self = this;
+        zoomOut.addEventListener(
+            "mousedown", this.onZoom.bind(this), false);
+        zoomOut.addEventListener(
+            "mouseup", () => clearInterval(zoomInterval), false);
+        zoomIn.addEventListener(
+            "mousedown", this.onZoom.bind(this), false);
+        zoomIn.addEventListener(
+            "mouseup", () => clearInterval(zoomInterval), false);
+        panLeft.addEventListener(
+            "mousedown", this.onOrbit.bind(this), false);
+        panLeft.addEventListener(
+            "mouseup", () => clearInterval(orbitInterval), false);
+        panRight.addEventListener(
+            "mousedown", this.onOrbit.bind(this), false);
+        panRight.addEventListener(
+            "mouseup", () => clearInterval(orbitInterval), false);
+        tiltUp.addEventListener(
+            "mousedown", this.onOrbit.bind(this), false);
+        tiltUp.addEventListener(
+            "mouseup", () => clearInterval(orbitInterval), false);
+        tiltDown.addEventListener(
+            "mousedown", this.onOrbit.bind(this), false);
+        tiltDown.addEventListener(
+            "mouseup", () => clearInterval(orbitInterval), false);
 
-        document.addEventListener("keydown", this.onOrbit.bind(this), false);
-        document.addEventListener("keyup", () => clearInterval(orbitInterval), false);
+        document.addEventListener(
+            "keydown", this.onOrbit.bind(this), false);
+        document.addEventListener(
+            "keyup", () => clearInterval(orbitInterval), false);
 
         _register.call(this);
     };
     PANOLENS.LittlePlanet.prototype.registerMouseEvents = registerCustomEvents;
 
     PANOLENS.LittlePlanet.prototype.onZoom = function (event) {
+        const {name} = event.target;
         zoomInterval = setInterval(() => {
-            this.addZoomDelta(event.target.name === "zoomIn" ? - zDelta : zDelta);
+            this.addZoomDelta(name === "zoomIn" ? - zDelta : zDelta);
             this.onUpdateCallback();
         }, refreshRate);
     };
 
     PANOLENS.LittlePlanet.prototype.onOrbit = function (event) {
+        const {name} = event.target;
         if (!event.repeat) { // if the key is not held down
+            clearInterval(orbitInterval); // avoid overlapping orbits on keydown.
             let x = window.innerWidth / 2;
             let y = window.innerHeight / 2;
             this.userMouse.set(x, y);
             this.dragging = true;
             orbitInterval = setInterval(() => {
-                if (event.target.name === "panLeft" || event.key === "s") x = x - xDelta;
-                if (event.target.name === "panRight" || event.key === "d") x = x + xDelta;
-                if (event.target.name === "tiltUp" || event.key === "f") y = y - yDelta;
-                if (event.target.name === "tiltDown" || event.key === "v") y = y + yDelta;
+                if (name === "panLeft" || event.key === "s") x = x - xDelta;
+                if (name === "panRight" || event.key === "d") x = x + xDelta;
+                if (name === "tiltUp" || event.key === "f") y = y - yDelta;
+                if (name === "tiltDown" || event.key === "v") y = y + yDelta;
                 const angleX = THREE.Math.degToRad(x - this.userMouse.x) * 0.4;
                 const angleY = THREE.Math.degToRad(y - this.userMouse.y) * 0.4;
                 this.quatA.setFromAxisAngle(this.vectorY, angleX);
@@ -106,7 +127,9 @@
     };
 
     const ImageLittlePlanet = new PANOLENS.ImageLittlePlanet('image.png');
-    const viewer = new PANOLENS.Viewer({controlBar: true});
+    const viewer = new PANOLENS.Viewer({
+        controlBar: true
+    });
     viewer.add(ImageLittlePlanet);
     </script>
 </body>
